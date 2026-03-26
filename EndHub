@@ -1,4 +1,220 @@
 local Library = {}
+
+function Library:CreateWindow(title)
+    local Players = game:GetService("Players")
+    local Player = Players.LocalPlayer
+
+    -- remover antigo
+    local old = Player.PlayerGui:FindFirstChild("CustomMenuUI")
+    if old then old:Destroy() end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "CustomMenuUI"
+    gui.Parent = Player:WaitForChild("PlayerGui")
+
+    -- barra
+    local Bar = Instance.new("TextButton", gui)
+    Bar.Size = UDim2.new(0,240,0,35)
+    Bar.Position = UDim2.new(0.5,-120,0.1,-20)
+    Bar.Text = title
+    Bar.BackgroundTransparency = 0.8
+    Instance.new("UICorner", Bar).CornerRadius = UDim.new(1,0)
+
+    -- menu
+    local Menu = Instance.new("Frame", gui)
+    Menu.Size = UDim2.new(0,420,0,260)
+    Menu.Position = UDim2.new(0.5,-210,0.48,-130)
+    Menu.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    Menu.BackgroundTransparency = 0.3
+    Menu.Visible = false
+    Instance.new("UICorner", Menu)
+
+    -- título
+    local Title = Instance.new("TextLabel", Menu)
+    Title.Size = UDim2.new(1,-80,0,40)
+    Title.Position = UDim2.new(0,10,0,0)
+    Title.Text = title
+    Title.BackgroundTransparency = 1
+    Title.TextColor3 = Color3.new(1,1,1)
+
+    -- botões
+    local Close = Instance.new("TextButton", Menu)
+    Close.Text = "X"
+    Close.Size = UDim2.new(0,30,0,30)
+    Close.Position = UDim2.new(1,-35,0,5)
+
+    local Min = Instance.new("TextButton", Menu)
+    Min.Text = "-"
+    Min.Size = UDim2.new(0,30,0,30)
+    Min.Position = UDim2.new(1,-70,0,5)
+
+    -- abas
+    local Tabs = Instance.new("Frame", Menu)
+    Tabs.Size = UDim2.new(0,120,1,-40)
+    Tabs.Position = UDim2.new(0,0,0,40)
+
+    local Content = Instance.new("Frame", Menu)
+    Content.Size = UDim2.new(1,-120,1,-40)
+    Content.Position = UDim2.new(0,120,0,40)
+
+    function Library:CreateTab(name)
+        local Button = Instance.new("TextButton", Tabs)
+        Button.Size = UDim2.new(1,0,0,35)
+        Button.Text = name
+
+        local Scroll = Instance.new("ScrollingFrame", Content)
+        Scroll.Size = UDim2.new(1,0,1,0)
+        Scroll.Visible = false
+        Scroll.CanvasSize = UDim2.new(0,0,0,0)
+        Scroll.ScrollBarThickness = 5
+
+        local Layout = Instance.new("UIListLayout", Scroll)
+        Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Scroll.CanvasSize = UDim2.new(0,0,0,Layout.AbsoluteContentSize.Y)
+        end)
+
+        Button.MouseButton1Click:Connect(function()
+            for _,v in pairs(Content:GetChildren()) do
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
+            end
+            Scroll.Visible = true
+        end)
+
+        local Tab = {}
+
+        function Tab:CreateButton(text, callback)
+            local Btn = Instance.new("TextButton", Scroll)
+            Btn.Size = UDim2.new(1,0,0,40)
+            Btn.Text = text
+            Btn.MouseButton1Click:Connect(callback)
+        end
+
+        function Tab:CreateToggle(text, callback)
+            local state = false
+            local Toggle = Instance.new("TextButton", Scroll)
+            Toggle.Size = UDim2.new(1,0,0,40)
+            Toggle.Text = text.." OFF"
+
+            Toggle.MouseButton1Click:Connect(function()
+                state = not state
+                Toggle.Text = text.." "..(state and "ON" or "OFF")
+                callback(state)
+            end)
+        end
+
+        function Tab:CreatePlayerList(callback)
+            local Btn = Instance.new("TextButton", Scroll)
+            Btn.Size = UDim2.new(1,0,0,40)
+            Btn.Text = "Selecionar Players"
+
+            Btn.MouseButton1Click:Connect(function()
+                for _,p in pairs(game.Players:GetPlayers()) do
+                    callback(p)
+                end
+            end)
+        end
+
+        return Tab
+    end
+
+    Bar.MouseButton1Click:Connect(function()
+        Menu.Visible = true
+        Bar.Visible = false
+    end)
+
+    Min.MouseButton1Click:Connect(function()
+        Menu.Visible = false
+        Bar.Visible = true
+    end)
+
+    Close.MouseButton1Click:Connect(function()
+        gui:Destroy()
+    end)
+
+    return Library
+end
+
+return Library        local Button = Instance.new("TextButton", Tabs)
+        Button.Size = UDim2.new(1,0,0,35)
+        Button.Text = name
+
+        local Scroll = Instance.new("ScrollingFrame", Content)
+        Scroll.Size = UDim2.new(1,0,1,0)
+        Scroll.Visible = false
+        Scroll.CanvasSize = UDim2.new(0,0,0,0)
+        Scroll.ScrollBarThickness = 5
+
+        local Layout = Instance.new("UIListLayout", Scroll)
+        Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Scroll.CanvasSize = UDim2.new(0,0,0,Layout.AbsoluteContentSize.Y)
+        end)
+
+        Button.MouseButton1Click:Connect(function()
+            for _,v in pairs(Content:GetChildren()) do
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
+            end
+            Scroll.Visible = true
+        end)
+
+        local Tab = {}
+
+        function Tab:CreateButton(text, callback)
+            local Btn = Instance.new("TextButton", Scroll)
+            Btn.Size = UDim2.new(1,0,0,40)
+            Btn.Text = text
+            Btn.MouseButton1Click:Connect(callback)
+        end
+
+        function Tab:CreateToggle(text, callback)
+            local state = false
+            local Toggle = Instance.new("TextButton", Scroll)
+            Toggle.Size = UDim2.new(1,0,0,40)
+            Toggle.Text = text.." OFF"
+
+            Toggle.MouseButton1Click:Connect(function()
+                state = not state
+                Toggle.Text = text.." "..(state and "ON" or "OFF")
+                callback(state)
+            end)
+        end
+
+        function Tab:CreatePlayerList(callback)
+            local Btn = Instance.new("TextButton", Scroll)
+            Btn.Size = UDim2.new(1,0,0,40)
+            Btn.Text = "Selecionar Players"
+
+            Btn.MouseButton1Click:Connect(function()
+                for _,p in pairs(game.Players:GetPlayers()) do
+                    callback(p)
+                end
+            end)
+        end
+
+        return Tab
+    end
+
+    Bar.MouseButton1Click:Connect(function()
+        Menu.Visible = true
+        Bar.Visible = false
+    end)
+
+    Min.MouseButton1Click:Connect(function()
+        Menu.Visible = false
+        Bar.Visible = true
+    end)
+
+    Close.MouseButton1Click:Connect(function()
+        gui:Destroy()
+    end)
+
+    return Library
+end
+
+return Library Library = {}
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
 
