@@ -1,40 +1,222 @@
---[[
-    ModernUI Library v1.0
-    Biblioteca de Interface Moderna e Minimalista
-    Estilo: Rayfield/Venyx Inspirado
-    Autor: Senior Lua Developer
-]]
-
-local ModernUI = {}
-ModernUI.__index = ModernUI
-
--- Serviços
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
+local Library = {}
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
 
--- Configurações Globais
-local Config = {
-    Theme = {
-        Background = Color3.fromRGB(18, 18, 22),
-        Surface = Color3.fromRGB(25, 25, 30),
-        Primary = Color3.fromRGB(88, 101, 242),
-        PrimaryHover = Color3.fromRGB(114, 126, 255),
-        Text = Color3.fromRGB(255, 255, 255),
-        TextSecondary = Color3.fromRGB(160, 160, 170),
-        Border = Color3.fromRGB(45, 45, 55),
-        Success = Color3.fromRGB(46, 204, 113),
-        Danger = Color3.fromRGB(231, 76, 60)
-    },
-    Animations = {
-        Duration = 0.2,
-        EasingStyle = Enum.EasingStyle.Quad,
-        EasingDirection = Enum.EasingDirection.Out
-    }
-}
+function Library:CreateWindow(title)
+    local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+    ScreenGui.Name = "UI_Library"
 
--- Funções Utilitárias
+    -- Main Frame
+    local Main = Instance.new("Frame", ScreenGui)
+    Main.Size = UDim2.new(0, 500, 0, 300)
+    Main.Position = UDim2.new(0.5, -250, 0.5, -150)
+    Main.BackgroundColor3 = Color3.fromRGB(25,25,25)
+    Main.BorderSizePixel = 0
+    Main.Visible = true
+    Main.AnchorPoint = Vector2.new(0.5,0.5)
+    Main.ClipsDescendants = true
+
+    local UICorner = Instance.new("UICorner", Main)
+    UICorner.CornerRadius = UDim.new(0, 10)
+
+    -- Tabs
+    local TabsFrame = Instance.new("Frame", Main)
+    TabsFrame.Size = UDim2.new(0, 120, 1, 0)
+    TabsFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    TabsFrame.BorderSizePixel = 0
+
+    local UIListLayout = Instance.new("UIListLayout", TabsFrame)
+    UIListLayout.Padding = UDim.new(0,5)
+
+    -- Content
+    local ContentFrame = Instance.new("Frame", Main)
+    ContentFrame.Size = UDim2.new(1, -120, 1, 0)
+    ContentFrame.Position = UDim2.new(0,120,0,0)
+    ContentFrame.BackgroundTransparency = 1
+
+    local Tabs = {}
+
+    function Library:CreateTab(name)
+        local TabButton = Instance.new("TextButton", TabsFrame)
+        TabButton.Size = UDim2.new(1,0,0,40)
+        TabButton.Text = name
+        TabButton.BackgroundColor3 = Color3.fromRGB(30,30,30)
+        TabButton.TextColor3 = Color3.fromRGB(255,255,255)
+        TabButton.BorderSizePixel = 0
+
+        local TabFrame = Instance.new("Frame", ContentFrame)
+        TabFrame.Size = UDim2.new(1,0,1,0)
+        TabFrame.Visible = false
+        TabFrame.BackgroundTransparency = 1
+
+        local Layout = Instance.new("UIListLayout", TabFrame)
+        Layout.Padding = UDim.new(0,5)
+
+        Tabs[name] = TabFrame
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _,v in pairs(ContentFrame:GetChildren()) do
+                if v:IsA("Frame") then
+                    v.Visible = false
+                end
+            end
+            TabFrame.Visible = true
+        end)
+
+        local Tab = {}
+
+        function Tab:CreateButton(text, callback)
+            local Btn = Instance.new("TextButton", TabFrame)
+            Btn.Size = UDim2.new(1,-10,0,35)
+            Btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+            Btn.Text = text
+            Btn.TextColor3 = Color3.fromRGB(255,255,255)
+            Btn.BorderSizePixel = 0
+
+            Instance.new("UICorner", Btn)
+
+            Btn.MouseButton1Click:Connect(function()
+                TweenService:Create(Btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60,60,60)}):Play()
+                task.wait(0.1)
+                TweenService:Create(Btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(35,35,35)}):Play()
+                callback()
+            end)
+        end
+
+        function Tab:CreateToggle(text, callback)
+            local Toggle = Instance.new("TextButton", TabFrame)
+            Toggle.Size = UDim2.new(1,-10,0,35)
+            Toggle.BackgroundColor3 = Color3.fromRGB(35,35,35)
+            Toggle.Text = text .. " : OFF"
+            Toggle.TextColor3 = Color3.fromRGB(255,255,255)
+            Toggle.BorderSizePixel = 0
+
+            Instance.new("UICorner", Toggle)
+
+            local state = false
+
+            Toggle.MouseButton1Click:Connect(function()
+                state = not state
+                Toggle.Text = text .. " : " .. (state and "ON" or "OFF")
+                callback(state)
+            end)
+        end
+
+        function Tab:CreateSlider(text, min, max, callback)
+            local Slider = Instance.new("Frame", TabFrame)
+            Slider.Size = UDim2.new(1,-10,0,50)
+            Slider.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+            local Fill = Instance.new("Frame", Slider)
+            Fill.Size = UDim2.new(0,0,1,0)
+            Fill.BackgroundColor3 = Color3.fromRGB(0,170,255)
+
+            local dragging = false
+
+            Slider.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                end
+            end)
+
+            UIS.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+
+            UIS.InputChanged:Connect(function(input)
+                if dragging then
+                    local pos = math.clamp((input.Position.X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1)
+                    Fill.Size = UDim2.new(pos,0,1,0)
+                    local value = math.floor((min + (max - min) * pos))
+                    callback(value)
+                end
+            end)
+        end
+
+        function Tab:CreateInput(text, callback)
+            local Box = Instance.new("TextBox", TabFrame)
+            Box.Size = UDim2.new(1,-10,0,35)
+            Box.PlaceholderText = text
+            Box.BackgroundColor3 = Color3.fromRGB(35,35,35)
+            Box.TextColor3 = Color3.fromRGB(255,255,255)
+            Box.BorderSizePixel = 0
+
+            Instance.new("UICorner", Box)
+
+            Box.FocusLost:Connect(function()
+                callback(Box.Text)
+            end)
+        end
+
+        function Tab:CreateDropdown(text, options, callback)
+            local Drop = Instance.new("TextButton", TabFrame)
+            Drop.Size = UDim2.new(1,-10,0,35)
+            Drop.Text = text
+            Drop.BackgroundColor3 = Color3.fromRGB(35,35,35)
+
+            local open = false
+
+            Drop.MouseButton1Click:Connect(function()
+                open = not open
+                if open then
+                    for _,opt in pairs(options) do
+                        local Btn = Instance.new("TextButton", TabFrame)
+                        Btn.Size = UDim2.new(1,-10,0,30)
+                        Btn.Text = opt
+                        Btn.BackgroundColor3 = Color3.fromRGB(45,45,45)
+
+                        Btn.MouseButton1Click:Connect(function()
+                            callback(opt)
+                            Btn:Destroy()
+                        end)
+                    end
+                end
+            end)
+        end
+
+        return Tab
+    end
+
+    -- Floating Button
+    local Float = Instance.new("TextButton", ScreenGui)
+    Float.Size = UDim2.new(0,50,0,50)
+    Float.Position = UDim2.new(0,20,0.5,0)
+    Float.Text = "UI"
+    Float.BackgroundColor3 = Color3.fromRGB(0,170,255)
+    Float.BorderSizePixel = 0
+
+    Instance.new("UICorner", Float)
+
+    local dragging = false
+
+    Float.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if dragging then
+            Float.Position = UDim2.new(0, input.Position.X, 0, input.Position.Y)
+        end
+    end)
+
+    Float.MouseButton1Click:Connect(function()
+        Main.Visible = not Main.Visible
+    end)
+
+    return Library
+end
+
+return Library-- Funções Utilitárias
 local function CreateRoundedFrame(parent, size, position, color, transparency, cornerRadius)
     local frame = Instance.new("Frame")
     frame.Parent = parent
